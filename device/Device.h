@@ -16,8 +16,7 @@ class Device {
 public:
     Device() {
         if (fd < 0) {
-            perror("Unable to open /dev/uinput");
-            return;
+            throw std::runtime_error("Unable to open /dev/uinput");
         }
 
         ioctl(fd, UI_SET_EVBIT, EV_KEY);
@@ -26,11 +25,11 @@ public:
         ioctl(fd, UI_SET_RELBIT, REL_X);
         ioctl(fd, UI_SET_RELBIT, REL_Y);
 
-        auto* setup = new uinput_setup();
-        setup->id.bustype = BUS_USB;
-        setup->id.vendor = VENDOR;
-        setup->id.product = PRODUCT;
-        strcpy(setup->name,NAME.c_str());
+        uinput_setup setup = {};
+        setup.id.bustype = BUS_USB;
+        setup.id.vendor = VENDOR;
+        setup.id.product = PRODUCT;
+        std::strncpy(setup.name, NAME.c_str(), sizeof(setup.name));
 
         ioctl(fd, UI_DEV_SETUP, &setup);
         ioctl(fd, UI_DEV_CREATE);
